@@ -1,8 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const path = require('path');
+const userRouter = require('./routes/users');
 
+const app = express();
 const { PORT = 3000 } = process.env;
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
@@ -11,15 +12,10 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useFindAndModify: false,
 });
 
-const app = express();
-
-app.use(bodyParser.json());
+app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.get('/', (req, res) => {
-  res.send('hello');
-});
+app.use('/', userRouter);
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
