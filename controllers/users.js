@@ -6,7 +6,15 @@ const getUsers = (req, res) => {
       res.status(200).send(users);
     })
     .catch((error) => {
-      res.status(500).send(`Произошла ошибка: ${error}`);
+      if (error.name === 'ValidationError') {
+        res.status(400).send({
+          message: 'Переданы некорректные данные в методе поиска пользователей',
+        });
+      } else {
+        res.status(500).send({
+          message: 'Ошибка по умолчанию',
+        });
+      }
     });
 };
 
@@ -17,16 +25,36 @@ const getUserById = (req, res) => {
     })
     .then((user) => {
       res.status(200).send(user);
+    })
+    .catch((error) => {
+      if (error.name === 'ValidationError') {
+        res.status(404).send({
+          message: `Пользователь по указанному ${req.params.userId} не найден`,
+        });
+      } else {
+        res.status(500).send({
+          message: 'Ошибка по умолчанию',
+        });
+      }
     });
 };
 
 const createUser = (req, res) => {
-  User.create({ ...req.body })
+  const { name, about, avatar } = req.body;
+  User.create({ name, about, avatar })
     .then((user) => {
       res.status(200).send(user);
     })
     .catch((error) => {
-      res.status(500).send(`Произошла ошибка: ${error}`);
+      if (error.name === 'ValidationError') {
+        res.status(400).send({
+          message: 'Переданы некорректные данные при создании пользователя',
+        });
+      } else {
+        res.status(500).send({
+          message: 'Ошибка по умолчанию',
+        });
+      }
     });
 };
 
@@ -37,7 +65,19 @@ const updateUserProfile = (req, res) => {
       res.status(200).send({ message: 'Профиль успешно обновлён' });
     })
     .catch((error) => {
-      res.status(500).send(`Произошла ошибка: ${error}`);
+      if (error.name === 'ValidationError') {
+        res.status(400).send({
+          message: 'Переданы некорректные данные при обновлении профиля',
+        });
+      } else if (!req.user._id) {
+        res.status(404).send({
+          message: `Пользователь с указанным ${req.user._id} не найден`,
+        });
+      } else {
+        res.status(500).send({
+          message: 'Ошибка по умолчанию',
+        });
+      }
     });
 };
 
@@ -48,7 +88,19 @@ const updateUserAvatar = (req, res) => {
       res.status(200).send({ message: 'Аватар успешно обновлён' });
     })
     .catch((error) => {
-      res.status(500).send(`Произошла ошибка: ${error}`);
+      if (error.name === 'ValidationError') {
+        res.status(400).send({
+          message: 'Переданы некорректные данные при обновлении аватара',
+        });
+      } else if (!req.user._id) {
+        res.status(404).send({
+          message: `Пользователь с указанным ${req.user._id} не найден`,
+        });
+      } else {
+        res.status(500).send({
+          message: 'Ошибка по умолчанию',
+        });
+      }
     });
 };
 
