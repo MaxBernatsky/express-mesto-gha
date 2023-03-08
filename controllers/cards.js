@@ -35,7 +35,7 @@ const likeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
     .then(() => {
       res.status(200).send({ message: 'Лайк успешно добавлен' });
@@ -49,7 +49,7 @@ const dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
     .then(() => {
       res.status(200).send({ message: 'Лайк успешно удален' });
@@ -63,5 +63,5 @@ module.exports = {
   createCard,
   deleteCard,
   likeCard,
-  dislikeCard
+  dislikeCard,
 };

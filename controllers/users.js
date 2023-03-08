@@ -57,5 +57,5 @@ module.exports = {
   getUserById,
   createUser,
   updateUserProfile,
-  updateUserAvatar
+  updateUserAvatar,
 };
