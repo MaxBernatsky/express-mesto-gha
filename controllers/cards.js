@@ -31,8 +31,37 @@ const deleteCard = (req, res) => {
     });
 };
 
+const likeCard = (req, res) => {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true }
+  )
+    .then(() => {
+      res.status(200).send({ message: 'Лайк успешно добавлен' });
+    })
+    .catch((error) => {
+      res.status(500).send(`Произошла ошибка: ${error}`);
+    });
+};
+
+const dislikeCard = (req, res) => {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $pull: { likes: req.user._id } },
+    { new: true }
+  )
+    .then(() => {
+      res.status(200).send({ message: 'Лайк успешно удален' });
+    })
+    .catch((error) => {
+      res.status(500).send(`Произошла ошибка: ${error}`);
+    });
+};
 module.exports = {
   getCards,
   createCard,
   deleteCard,
+  likeCard,
+  dislikeCard
 };
