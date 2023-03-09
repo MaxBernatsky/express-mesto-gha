@@ -6,7 +6,15 @@ const getCards = (req, res) => {
       res.status(200).send(cards);
     })
     .catch((error) => {
-      res.status(500).send(`Произошла ошибка: ${error}`);
+      if (error.name === 'ValidationError') {
+        res.status(400).send({
+          message: 'Переданы некорректные данные при поиске карточек',
+        });
+      } else {
+        res.status(500).send({
+          message: 'Ошибка по умолчанию',
+        });
+      }
     });
 };
 
@@ -17,7 +25,15 @@ const createCard = (req, res) => {
       res.status(200).send(card);
     })
     .catch((error) => {
-      res.status(500).send(`Произошла ошибка: ${error}`);
+      if (error.name === 'ValidationError') {
+        res.status(400).send({
+          message: 'Переданы некорректные данные при создании карточки',
+        });
+      } else {
+        res.status(500).send({
+          message: 'Ошибка по умолчанию',
+        });
+      }
     });
 };
 
