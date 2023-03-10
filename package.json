@@ -14,7 +14,7 @@
     "url": "git+https://github.com/MaxBernatsky/express-mesto-gha.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Max Bernatsky",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/MaxBernatsky/express-mesto-gha/issues"

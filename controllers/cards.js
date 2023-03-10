@@ -1,19 +1,18 @@
 const Card = require('../models/card');
+const {
+  CREATED,
+  BAD_REQUEST,
+  NOT_FOUND,
+  INTERNAL_SERVER_ERROR,
+} = require('../utils/httpStatusCodes');
 
 const getCards = (req, res) => {
   Card.find({})
-    .populate(['owner', 'likes'])
     .then((cards) => {
-      res.status(200).send(cards);
+      res.send(cards);
     })
-    .catch((error) => {
-      if (error.name === 'ValidationError') {
-        res.status(400).send({
-          message: 'Переданы некорректные данные при поиске карточек',
-        });
-        return;
-      }
-      res.status(500).send({
+    .catch(() => {
+      res.status(INTERNAL_SERVER_ERROR).send({
         message: 'Ошибка по умолчанию',
       });
     });
@@ -23,16 +22,16 @@ const createCard = (req, res) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
-      res.status(200).send(card);
+      res.status(CREATED).send(card);
     })
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        res.status(400).send({
+        res.status(BAD_REQUEST).send({
           message: 'Переданы некорректные данные при создании карточки',
         });
         return;
       }
-      res.status(500).send({
+      res.status(INTERNAL_SERVER_ERROR).send({
         message: 'Ошибка по умолчанию',
       });
     });
@@ -42,19 +41,21 @@ const deleteCard = (req, res) => {
   Card.findByIdAndDelete(req.params.cardId)
     .then((card) => {
       if (!card) {
-        res.status(404).send({ message: 'Карточка не найдена' });
+        res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
         return;
       }
-      res.status(200).send({ message: 'Карточка успешно удалена' });
+      res.send({ message: 'Карточка успешно удалена' });
     })
     .catch((error) => {
       if (error.name === 'CastError') {
         res
-          .status(400)
+          .status(BAD_REQUEST)
           .send({ message: 'Ошибка при передачи данных о карточке' });
         return;
       }
-      res.status(500).send(`Произошла ошибка: ${error}`);
+      res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: 'Ошибка по умолчанию' });
     });
 };
 
@@ -66,19 +67,21 @@ const likeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(404).send({ message: 'Карточка не найдена' });
+        res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
         return;
       }
-      res.status(200).send({ message: 'Карточка успешно удалена' });
+      res.send({ message: 'Карточка успешно удалена' });
     })
     .catch((error) => {
       if (error.name === 'CastError') {
         res
-          .status(400)
+          .status(BAD_REQUEST)
           .send({ message: 'Ошибка при передачи данных о карточке' });
         return;
       }
-      res.status(500).send(`Произошла ошибка: ${error}`);
+      res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: 'Ошибка по умолчанию' });
     });
 };
 
@@ -90,19 +93,21 @@ const dislikeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(404).send({ message: 'Карточка не найдена' });
+        res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
         return;
       }
-      res.status(200).send({ message: 'Карточка успешно удалена' });
+      res.send({ message: 'Карточка успешно удалена' });
     })
     .catch((error) => {
       if (error.name === 'CastError') {
         res
-          .status(400)
+          .status(BAD_REQUEST)
           .send({ message: 'Ошибка при передачи данных о карточке' });
         return;
       }
-      res.status(500).send(`Произошла ошибка: ${error}`);
+      res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: 'Ошибка по умолчанию' });
     });
 };
 module.exports = {
