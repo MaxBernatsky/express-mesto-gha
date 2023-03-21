@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const {
   CREATED,
@@ -41,8 +42,16 @@ const getUserById = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+  bcrypt.hash(password, 10).then((hash) => User.create({
+    name,
+    about,
+    avatar,
+    email,
+    password: hash,
+  })
     .then((user) => {
       res.status(CREATED).send(user);
     })
@@ -56,7 +65,7 @@ const createUser = (req, res) => {
       res.status(INTERNAL_SERVER_ERROR).send({
         message: 'Ошибка по умолчанию',
       });
-    });
+    }));
 };
 
 const updateUserProfile = (req, res) => {
