@@ -42,6 +42,18 @@ const getUserById = (req, res) => {
     });
 };
 
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((user) => {
+      if (!user) {
+        res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
+        return;
+      }
+      res.send(user);
+    })
+    .catch(next);
+};
+
 const createUser = (req, res) => {
   const {
     name, about, avatar, email, password,
@@ -131,32 +143,27 @@ const updateUserAvatar = (req, res) => {
     });
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
         expiresIn: '7d',
       });
-
-      res.send({ token });
+      res
+        .cookie('jwt', token, {
+          maxAge: 3600000 * 24 * 7,
+          httpOnly: true,
+        })
+        .send({ token, message: 'Логин выполнен успешно' });
     })
-    .catch((error) => {
-      if (error.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({
-          message: 'Переданы некорректные данные при логине',
-        });
-        return;
-      }
-      res.status(INTERNAL_SERVER_ERROR).send({
-        message: 'Ошибка по умолчанию',
-      });
-    });
+    .catch(next);
 };
 
 module.exports = {
   getUsers,
   getUserById,
+  getCurrentUser,
   createUser,
   updateUserProfile,
   updateUserAvatar,
