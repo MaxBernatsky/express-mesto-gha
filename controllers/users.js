@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const {
   CREATED,
@@ -130,10 +131,34 @@ const updateUserAvatar = (req, res) => {
     });
 };
 
+const login = (req, res) => {
+  const { email, password } = req.body;
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
+        expiresIn: '7d',
+      });
+
+      res.send({ token });
+    })
+    .catch((error) => {
+      if (error.name === 'ValidationError') {
+        res.status(BAD_REQUEST).send({
+          message: 'Переданы некорректные данные при логине',
+        });
+        return;
+      }
+      res.status(INTERNAL_SERVER_ERROR).send({
+        message: 'Ошибка по умолчанию',
+      });
+    });
+};
+
 module.exports = {
   getUsers,
   getUserById,
   createUser,
   updateUserProfile,
   updateUserAvatar,
+  login,
 };
