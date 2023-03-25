@@ -15,11 +15,9 @@ const getUsers = (req, res, next) => {
 };
 
 const getUserById = (req, res, next) => {
-  User.findById(req.user._id)
+  User.findById(req.params.userId)
+    .orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => {
-      if (!user) {
-        throw new NotFoundError('Пользователь не найден');
-      }
       res.send(user);
     })
     .catch((error) => {
@@ -52,12 +50,13 @@ const createUser = (req, res, next) => {
     email,
     password: hash,
   })
-    .then(() => {
+    .then((user) => {
       res.status(CREATED).send({
-        name,
-        about,
-        avatar,
-        email,
+        _id: user._id,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        email: user.email,
       });
     })
     .catch((error) => {
@@ -142,20 +141,14 @@ const login = (req, res, next) => {
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
         expiresIn: '7d',
       });
-      res
-        .cookie('jwt', token, {
-          maxAge: 3600000 * 24 * 7,
-          httpOnly: true,
-        })
-        .send({ token, message: 'Логин выполнен успешно' });
+      res.send({ token, message: 'Логин выполнен успешно' });
     })
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return next(
-          new BadRequestError('Переданы некорректные данные при логине'),
-        );
+        next(new BadRequestError('Переданы некорректные данные при логине'));
+        return;
       }
-      return next(error);
+      next(error);
     });
 };
 

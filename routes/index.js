@@ -2,8 +2,8 @@ const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
 const userRouter = require('./users');
 const cardRouter = require('./cards');
-const { createUser, login } = require('../controllers/users');
 const { auth } = require('../middlewares/auth');
+const { createUser, login } = require('../controllers/users');
 const NotFoundError = require('../errors/NotFoundError');
 const regexUrl = require('../utils/validation');
 
@@ -32,11 +32,13 @@ router.post(
   login,
 );
 
-router.use('/users', auth, userRouter);
+router.use(auth);
 
-router.use('/cards', auth, cardRouter);
+router.use('/users', userRouter);
 
-router.use('*', auth, () => {
+router.use('/cards', cardRouter);
+
+router.use('*', () => {
   throw new NotFoundError('Страница не найдена');
 });
 
