@@ -52,8 +52,10 @@ const createUser = (req, res, next) => {
     email,
     password: hash,
   })
-    .then((user) => {
-      res.status(CREATED).send(user);
+    .then(() => {
+      res.status(CREATED).send({
+        name, about, avatar, email,
+      });
     })
     .catch((error) => {
       if (error.name === 'ValidationError') {
@@ -114,7 +116,7 @@ const updateUserAvatar = (req, res, next) => {
   )
     .then((updatedUser) => {
       if (!updatedUser) {
-        throw NotFoundError('Пользователь не найден');
+        throw new NotFoundError('Пользователь не найден');
       }
       res.send(updatedUser);
     })
