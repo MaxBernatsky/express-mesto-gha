@@ -45,39 +45,36 @@ const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-  bcrypt
-    .hash(password, 10)
-    .then((hash) => User.create({
-      name,
-      about,
-      avatar,
-      email,
-      password: hash,
+  bcrypt.hash(password, 10).then((hash) => User.create({
+    name,
+    about,
+    avatar,
+    email,
+    password: hash,
+  })
+    .then(() => {
+      res.status(CREATED).send({
+        name,
+        about,
+        avatar,
+        email,
+      });
     })
-      .then(() => {
-        res.status(CREATED).send({
-          name,
-          about,
-          avatar,
-          email,
-        });
-      })
-      .catch((error) => {
-        if (error.name === 'ValidationError') {
-          return next(
-            new BadRequestError(
-              'Переданы некорректные данные при создании пользователя',
-            ),
-          );
-        }
-        if (error.code === 11000) {
-          return next(
-            new ConflictError('Пользователь уже зарегистрирован на сайте'),
-          );
-        }
-        return next(error);
-      }))
-    .catch(next);
+    .catch((error) => {
+      if (error.name === 'ValidationError') {
+        next(
+          new BadRequestError(
+            'Переданы некорректные данные при создании пользователя',
+          ),
+        );
+        return;
+      }
+      if (error.code === 11000) {
+        next(new ConflictError('Пользователь уже зарегистрирован на сайте'));
+        return;
+      }
+      next(error);
+    }));
 };
 
 const updateUserProfile = (req, res, next) => {
