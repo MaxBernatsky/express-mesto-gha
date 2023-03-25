@@ -32,13 +32,11 @@ router.post(
   login,
 );
 
-router.use(auth);
+router.use('/users', auth, userRouter);
 
-router.use('/users', userRouter);
+router.use('/cards', auth, cardRouter);
 
-router.use('/cards', cardRouter);
-
-router.use('*', () => {
+router.use('*', auth, () => {
   throw new NotFoundError('Страница не найдена');
 });
 

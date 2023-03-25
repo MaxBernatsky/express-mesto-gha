@@ -45,33 +45,39 @@ const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-  bcrypt.hash(password, 10).then((hash) => User.create({
-    name,
-    about,
-    avatar,
-    email,
-    password: hash,
-  })
-    .then(() => {
-      res.status(CREATED).send({
-        name, about, avatar, email,
-      });
+  bcrypt
+    .hash(password, 10)
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
     })
-    .catch((error) => {
-      if (error.name === 'ValidationError') {
-        return next(
-          new BadRequestError(
-            'Переданы некорректные данные при создании пользователя',
-          ),
-        );
-      }
-      if (error.code === 11000) {
-        return next(
-          new ConflictError('Пользователь уже зарегистрирован на сайте'),
-        );
-      }
-      return next(error);
-    }));
+      .then(() => {
+        res.status(CREATED).send({
+          name,
+          about,
+          avatar,
+          email,
+        });
+      })
+      .catch((error) => {
+        if (error.name === 'ValidationError') {
+          return next(
+            new BadRequestError(
+              'Переданы некорректные данные при создании пользователя',
+            ),
+          );
+        }
+        if (error.code === 11000) {
+          return next(
+            new ConflictError('Пользователь уже зарегистрирован на сайте'),
+          );
+        }
+        return next(error);
+      }))
+    .catch(next);
 };
 
 const updateUserProfile = (req, res, next) => {
@@ -134,7 +140,7 @@ const updateUserAvatar = (req, res, next) => {
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
-  return User.findUserByCredentials(email, password)
+  User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
         expiresIn: '7d',
