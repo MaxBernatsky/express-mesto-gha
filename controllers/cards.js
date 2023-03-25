@@ -1,24 +1,18 @@
 const Card = require('../models/card');
-const {
-  CREATED,
-  BAD_REQUEST,
-  NOT_FOUND,
-  INTERNAL_SERVER_ERROR,
-} = require('../utils/httpStatusCodes');
+const { CREATED } = require('../utils/httpStatusCodes');
+const BadRequestError = require('../errors/BadRequestError');
+const NotFoundError = require('../errors/NotFoundError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => {
       res.send(cards);
     })
-    .catch(() => {
-      res.status(INTERNAL_SERVER_ERROR).send({
-        message: 'Ошибка по умолчанию',
-      });
-    });
+    .catch(next);
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
@@ -26,40 +20,38 @@ const createCard = (req, res) => {
     })
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({
-          message: 'Переданы некорректные данные при создании карточки',
-        });
-        return;
+        return next(
+          new BadRequestError(
+            'Переданы некорректные данные при создании карточки',
+          ),
+        );
       }
-      res.status(INTERNAL_SERVER_ERROR).send({
-        message: 'Ошибка по умолчанию',
-      });
+      return next(error);
     });
 };
 
-const deleteCard = (req, res) => {
+const deleteCard = (req, res, next) => {
   Card.findByIdAndDelete(req.params.cardId)
     .then((card) => {
       if (!card) {
-        res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
-        return;
+        throw new NotFoundError('Карточка не найдена');
+      }
+      if (req.user._id !== card.owner.toString()) {
+        throw new ForbiddenError('Нет прав для удаления карточки');
       }
       res.send({ message: 'Карточка успешно удалена' });
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        res
-          .status(BAD_REQUEST)
-          .send({ message: 'Ошибка при передачи данных о карточке' });
-        return;
+        return next(
+          new BadRequestError('Ошибка при передачи данных о карточке'),
+        );
       }
-      res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: 'Ошибка по умолчанию' });
+      return next(error);
     });
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -67,25 +59,21 @@ const likeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
-        return;
+        throw new NotFoundError('Карточка не найдена');
       }
-      res.send({ message: 'Карточка успешно удалена' });
+      res.send(card);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        res
-          .status(BAD_REQUEST)
-          .send({ message: 'Ошибка при передачи данных о карточке' });
-        return;
+        return next(
+          new BadRequestError('Ошибка при передачи данных о карточке'),
+        );
       }
-      res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: 'Ошибка по умолчанию' });
+      return next(error);
     });
 };
 
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -93,21 +81,17 @@ const dislikeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(NOT_FOUND).send({ message: 'Карточка не найдена' });
-        return;
+        throw new NotFoundError('Карточка не найдена');
       }
-      res.send({ message: 'Карточка успешно удалена' });
+      res.send(card);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        res
-          .status(BAD_REQUEST)
-          .send({ message: 'Ошибка при передачи данных о карточке' });
-        return;
+        return next(
+          new BadRequestError('Ошибка при передачи данных о карточке'),
+        );
       }
-      res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: 'Ошибка по умолчанию' });
+      return next(error);
     });
 };
 module.exports = {
