@@ -84,7 +84,6 @@ const updateUserProfile = (req, res, next) => {
     {
       new: true,
       runValidators: true,
-      upsert: false,
     },
   )
     .then((updatedUser) => {
@@ -143,13 +142,7 @@ const login = (req, res, next) => {
       });
       res.send({ token, message: 'Логин выполнен успешно' });
     })
-    .catch((error) => {
-      if (error.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при логине'));
-        return;
-      }
-      next(error);
-    });
+    .catch(next);
 };
 
 module.exports = {

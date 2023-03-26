@@ -31,7 +31,7 @@ const createCard = (req, res, next) => {
 };
 
 const deleteCard = (req, res, next) => {
-  Card.findByIdAndDelete(req.params.cardId)
+  Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка не найдена');
@@ -39,7 +39,9 @@ const deleteCard = (req, res, next) => {
       if (req.user._id !== card.owner.toString()) {
         throw new ForbiddenError('Нет прав для удаления карточки');
       }
-      res.send({ message: 'Карточка успешно удалена' });
+      card
+        .deleteOne()
+        .then(() => res.status(200).send({ message: 'Карточка успешно удалена' }));
     })
     .catch((error) => {
       if (error.name === 'CastError') {
